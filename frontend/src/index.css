@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #1f2937;
+  background: #f6f0e6;
+  font-family: 'Manrope', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, #f6f0e6 0, #f6f0e6 120px, #ffffff 120px, #ffffff 100%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(134, 103, 55, 0.03) 0,
+      rgba(134, 103, 55, 0.03) 1px,
+      transparent 1px,
+      transparent 24px
+    );
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+}
