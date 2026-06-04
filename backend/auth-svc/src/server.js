@@ -1,25 +1,43 @@
-// services/auth-service/src/server.js
+// backend/auth-svc/src/server.js
 const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const cors = require('cors'); 
 require('dotenv').config();
+
+const crypto = require('crypto');
+global.crypto = crypto;
 
 const User = require('./models');
 
 const app = express();
+
+// Wire up CORS middleware to whitelist the Nginx gateway and standalone ports
+app.use(cors({
+  origin: ['http://localhost', 'http://localhost:5173', 'http://localhost:5000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 const PORT = process.env.PORT || 5001;
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_key_change_me';
+const JWT_SECRET = process.env.JWT_SECRET || 'news_era_dev_secret_key_123S';
+
+// Strict evaluation fallback string format
+const mongoURI = process.env.MONGO_URI && process.env.MONGO_URI.startsWith('mongodb://')
+  ? process.env.MONGO_URI 
+  : 'mongodb://mongodb:27017/newsera_auth';
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/newsera_auth')
+mongoose.connect(mongoURI)
   .then(() => console.log('Auth Service connected to MongoDB'))
   .catch(err => console.error('Auth DB connection error:', err));
 
-// Route 1: Register a new user
-app.post('/auth/register', async (req, res) => {
+// Route 1: Register a new user (PREFIX REMOVED)
+app.post('/register', async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
@@ -43,8 +61,8 @@ app.post('/auth/register', async (req, res) => {
   }
 });
 
-// Route 2: Login user and return JWT
-app.post('/auth/login', async (req, res) => {
+// Route 2: Login user and return JWT (PREFIX REMOVED)
+app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -71,8 +89,8 @@ app.post('/auth/login', async (req, res) => {
   }
 });
 
-// Route 3: Internal verification token endpoint (For the API Gateway to use)
-app.get('/auth/verify', (req, res) => {
+// Route 3: Internal verification token endpoint (PREFIX REMOVED)
+app.get('/verify', (req, res) => {
   const token = req.headers['authorization']?.split(' ')[1];
   if (!token) return res.status(401).json({ valid: false, error: 'No token provided' });
 

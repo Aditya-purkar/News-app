@@ -7,14 +7,16 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Define your microservice URLs
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://127.0.0.1:5001';
-const NEWS_SERVICE_URL = process.env.NEWS_SERVICE_URL || 'http://127.0.0.1:5002';
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL || '[http://127.0.0.1:5003](http://127.0.0.1:5003)';
-// 1. Configure CORS
+// Define your microservice URLs (Sanitized string formatting)
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://auth-svc:5001';
+const NEWS_SERVICE_URL = process.env.NEWS_SERVICE_URL || 'http://news-svc:5002';
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://ai-svc:5003';
+// 1. Configure CORS to accept requests from both Vite directly and Nginx
 app.use(cors({
-  origin: 'http://localhost:5173', 
+  origin: ['http://localhost:5173', 'http://localhost'], 
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // 2. Gateway Traffic Logger (Highly recommended for debugging)

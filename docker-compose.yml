@@ -1,0 +1,101 @@
+version: '3.8' 
+
+services:
+  
+  mongodb:
+    image: mongo:latest 
+    container_name: mngodb-container
+    volumes: 
+      - mongo-data:/data/db
+    ports: 
+      - "27017:27017"
+    networks:
+     - newsera-network
+     
+    
+  auth-svc:
+    build: ./backend/auth-svc
+    container_name: auth-svc-cont
+    environment:
+     - PORT=5001
+     - MONGO_URI=mongodb://mongodb:27017/newsera_auth
+     - JWT_SECRET=news_era_dev_secret_key_123S 
+    depends_on: 
+     - mongodb
+    networks:
+     - newsera-network
+
+
+  news-svc:
+    build: ./backend/news-svc
+    container_name: news-svc-cont
+    environment:
+     - PORT=5002
+     - MONGO_URI=mongodb://mongodb:27017/newsera_news
+     - GNEWS_API_KEY=${GNEWS_API_KEY}
+     - NEWSDATA_API_KEY=${NEWSDATA_API_KEY}
+    depends_on:
+     - mongodb
+    networks:
+     - newsera-network
+
+
+  ai-svc:
+    build: ./backend/ai-svc
+    container_name: ai-svc-cont
+    environment: 
+     - PORT=5003
+     - AI_TEXT_PROVIDER_ORDER=gemini,openai
+     - GEMINI_API_KEY=${GEMINI_API_KEY}
+     - OPENAI_API_KEY=your_openai_key_here
+    networks:
+     - newsera-network
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway-cont
+    ports: 
+     - "5000:5000"
+    environment: 
+     - PORT=5000
+     - AUTH_SERVICE_URL=http://auth-svc:5001
+     - NEWS_SERVICE_URL=http://news-svc:5002
+     - AI_SERVICE_URL=http://ai-svc:5003
+    depends_on:
+     - auth-svc
+     - news-svc
+     - ai-svc
+    networks:
+     - newsera-network
+     
+  frontend:
+    build: ./frontend
+    container_name: frontend-cont
+    ports: 
+     - "5173:5173"
+    volumes:
+     - ./frontend:/app
+     - /app/node_modules
+    networks: 
+     - newsera-network 
+
+     
+  nginx:
+    build: ./nginx
+    container_name: nginx-cont
+    ports:
+     - "80:80"
+    depends_on:
+      - frontend
+      - api-gateway
+    networks:
+     - newsera-network
+
+volumes:
+  mongo-data: 
+networks:
+  newsera-network:
+    driver: bridge
+
+
+

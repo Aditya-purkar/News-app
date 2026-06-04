@@ -80,6 +80,8 @@ const fetchNewsDataTrending = async () => {
 const fetchTrendingBusinessNews = async () => {
   if (!isGNewsCoolingDown()) {
     try {
+      const apiKey = getApiKey();
+      console.log(`[DEBUG] Attempting GNews fetch. key being used: ${apiKey}`);
       const { data } = await axios.get(`${GNEWS_BASE_URL}/top-headlines`, {
         params: { category: 'business', lang: 'en', country: 'us', max: 10, apikey: getApiKey() },
         timeout: 15000,
@@ -88,6 +90,7 @@ const fetchTrendingBusinessNews = async () => {
       trendingCache = articles;
       return articles;
     } catch (error) {
+      console.error("[DEBUG] GNEWS REJECTED THE REQUEST. Reason:",error.response?.data || error.message);
       setGNewsCooldown(error);
     }
   }
@@ -101,26 +104,66 @@ const fetchTrendingBusinessNews = async () => {
 };
 
 const fetchNewsByKeyword = async (keyword) => {
-  const queryCandidates = buildQueryCandidates(keyword);
   const cacheKey = sanitizeQuery(keyword);
 
+  // 1. Try NewsData.io for Search First
+  try {
+    const apiKey = getNewsDataApiKey();
+    if (apiKey) {
+      console.log(`[DEBUG] Searching NewsData.io for: "${keyword}"`);
+      const { data } = await axios.get(`${NEWSDATA_BASE_URL}/latest`, {
+        params: { apikey: apiKey, q: keyword, language: 'en', size: 10 },
+        timeout: 5000,
+      });
+      const articles = (data.results || []).map(normalizeNewsDataArticle);
+      if (articles.length) {
+        newsCache.set(cacheKey, articles);
+        return articles;
+      }
+    }
+  } catch (error) {
+    console.error("[DEBUG] NewsData search failed, trying GNews fallback...", error.message);
+  }
+
+  // 2. GNews Search Fallback
   if (!isGNewsCoolingDown()) {
+    const queryCandidates = buildQueryCandidates(keyword);
     for (const safeQuery of queryCandidates) {
       try {
         const { data } = await axios.get(`${GNEWS_BASE_URL}/search`, {
           params: { q: safeQuery, lang: 'en', country: 'us', max: 10, sortby: 'publishedAt', apikey: getApiKey() },
-          timeout: 15000,
+          timeout: 3000,
         });
         const articles = (data.articles || []).map(normalizeArticle);
         newsCache.set(cacheKey, articles);
         return articles;
       } catch (error) {
         setGNewsCooldown(error);
-        break; // Simplify loop for brevity
+        break; 
       }
     }
   }
-  throw new Error('Unable to fetch live news from GNews.');
+  throw new Error('Unable to fetch live news from any provider.');
+};
+
+/**
+ * FIXED: Added the missing proxyNewsImage function definition.
+ * Fetches the target image securely as an image/stream stream payload.
+ */
+const proxyNewsImage = async ({imageUrl}) => {
+  if (!isValidHttpUrl(imageUrl)) {
+    throw new Error('Invalid image URL provided to proxy.');
+  }
+
+  const response = await axios.get(imageUrl, {
+    responseType: 'stream',
+    timeout: 10000,
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    }
+  });
+
+  return response;
 };
 
 // Export the functions so the Express server can use them

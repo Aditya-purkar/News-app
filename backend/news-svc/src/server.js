@@ -3,7 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const { fetchNewsByKeyword, fetchTrendingBusinessNews,proxyNewsImage } = require('./newsProvider');
+const { fetchNewsByKeyword, fetchTrendingBusinessNews, proxyNewsImage } = require('./newsProvider');
 const SearchHistory = require('./models/searchHistoryModel');
 
 const app = express();
@@ -12,12 +12,12 @@ app.use(express.json());
 const PORT = process.env.PORT || 5002;
 
 // Connect to the isolated News Database
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/newsera_news')
+mongoose.connect(process.env.MONGO_URI || 'mongodb://mongodb:27017/newsera_news')
   .then(() => console.log('News Service connected to MongoDB'))
   .catch(err => console.error('News DB connection error:', err));
 
-// Route 1: Search News (And save history)
-app.get('/news', async (req, res) => {
+// Route 1: Search News (PREFIX REMOVED)
+app.get('/', async (req, res) => {
   try {
     const { q } = req.query;
     // In a full microservices setup, the Gateway passes the user ID in the headers
@@ -41,8 +41,8 @@ app.get('/news', async (req, res) => {
   }
 });
 
-// Route 2: Trending News
-app.get('/news/trending', async (req, res) => {
+// Route 2: Trending News (PREFIX REMOVED)
+app.get('/trending', async (req, res) => {
   try {
     const articles = await fetchTrendingBusinessNews();
     res.json({ articles });
@@ -51,8 +51,8 @@ app.get('/news/trending', async (req, res) => {
   }
 });
 
-// Route 3: Proxy images to bypass CORS/hotlinking issues
-app.get('/news/image', async (req, res) => {
+// Route 3: Proxy images to bypass CORS/hotlinking issues (PREFIX REMOVED)
+app.get('/image', async (req, res) => {
   try {
     const { url, articleUrl } = req.query;
     if (!url) return res.status(400).json({ error: 'Image URL is required' });
