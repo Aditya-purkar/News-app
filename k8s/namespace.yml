@@ -1,0 +1,17 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: newsera
+  labels:
+    tier: application
+    env: development
+
+---
+
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: devops-tools
+  labels:
+    tier: infrastructure
+    env: development

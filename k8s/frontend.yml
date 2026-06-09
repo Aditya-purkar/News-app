@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: newsera
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: adityapurkar/news-app-distributed-frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80  # ✅ NGINX serves static assets natively on port 80 now
+              name: http
+          resources:
+            requests:
+              memory: "64Mi"     # ✅ Production NGINX takes up almost zero memory footprint
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: newsera
+spec:
+  type: ClusterIP          # ✅ Clean, internal production service type
+  ports:
+    - port: 5173           # Keeps your existing Ingress target configurations intact
+      targetPort: 80       # Maps that internal traffic cleanly straight to NGINX port 80
+      protocol: TCP
+  selector:
+    app: frontend

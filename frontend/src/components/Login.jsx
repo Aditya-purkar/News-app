@@ -10,7 +10,7 @@ export default function Login({ onLoginSuccess, toggleView }) {
     e.preventDefault();
     try {
       // Pointing to port 5000 (Our API Gateway)
-      const res = await fetch('http://localhost/api/auth/login', {
+      const res = await fetch('/api/auth/login',{
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

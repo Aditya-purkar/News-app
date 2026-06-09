@@ -9,7 +9,7 @@ export default function Register({ toggleView }) {
     e.preventDefault();
     try {
       // Pointing to port 5000 (Our API Gateway)
-      const res = await fetch('http://localhost/api/auth/register', {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
