@@ -5,22 +5,14 @@ metadata:
   namespace: newsera
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "50m"
-    
+    # FIX: Ensure /api routes are evaluated before the catch-all /
+    nginx.ingress.kubernetes.io/use-regex: "false"
 spec:
   ingressClassName: nginx
   rules:
     - http:
         paths:
-          # 1. Route web interface assets to the Frontend
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: frontend
-                port:
-                  number: 5173
-
-          # 2. Route ALL backend system calls to the Central API Gateway
+          # Rule 1: ALL /api/* traffic goes to the API Gateway (more specific — evaluated first)
           - path: /api
             pathType: Prefix
             backend:
@@ -28,3 +20,12 @@ spec:
                 name: api-gateway
                 port:
                   number: 8080
+ 
+          # Rule 2: Everything else is the React SPA (catch-all)
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 5173

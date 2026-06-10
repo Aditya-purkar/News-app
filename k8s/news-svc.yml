@@ -1,6 +1,6 @@
 kind: Deployment
 apiVersion: apps/v1
-metadata: 
+metadata:
   name: news-svc
   namespace: newsera
   labels:
@@ -16,33 +16,34 @@ spec:
         app: news-svc
     spec:
       containers:
-       - name: news-svc
-         image: adityapurkar/news-app-distributed-news-svc:latest
-         imagePullPolicy: IfNotPresent
-         ports:
-          - containerPort: 5002
-            name: news-port
-         resources:
-           requests:
-             memory: "128Mi"
-             cpu: "100m"
-           limits:
-             memory: "256Mi"
-             cpu: "200m"
-         envFrom:
-           - configMapRef: 
-              name: news-config
-           - secretRef:
-              name: news-secret
-
----    
+        - name: news-svc
+          image: adityapurkar/news-app-distributed-news-svc:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5002
+              name: news-port
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          # FIX: corrected indentation — 'name' must be 2 spaces under 'configMapRef'/'secretRef'
+          envFrom:
+            - configMapRef:
+                name: news-config
+            - secretRef:
+                name: news-secret
+ 
+---
 kind: Service
 apiVersion: v1
-metadata: 
+metadata:
   name: news-svc
   namespace: newsera
   labels:
-     app: news-svc
+    app: news-svc
 spec:
   ports:
     - port: 5002
@@ -50,9 +51,8 @@ spec:
       protocol: TCP
   selector:
     app: news-svc
-
+ 
 ---
-
 kind: HorizontalPodAutoscaler
 apiVersion: autoscaling/v2
 metadata:
@@ -66,12 +66,10 @@ spec:
   minReplicas: 1
   maxReplicas: 2
   metrics:
-   - type: Resource
-     resource: 
-       name: cpu
-       target:
-         type: Utilization
-         averageUtilization: 50
-
-
-    
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
+ 

@@ -16,18 +16,21 @@ spec:
       containers:
         - name: api-gateway
           image: adityapurkar/news-app-distributed-api-gateway:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 5000
           env:
             - name: PORT
               value: "5000"
-            # 🔹 FIXED: Added explicit cluster namespace resolution strings
             - name: AUTH_SERVICE_URL
               value: "http://auth-svc.newsera.svc.cluster.local:5001"
             - name: NEWS_SERVICE_URL
               value: "http://news-svc.newsera.svc.cluster.local:5002"
             - name: AI_SERVICE_URL
               value: "http://ai-svc.newsera.svc.cluster.local:5003"
+            # FIX 1: Allow any origin in k8s — browser hits cluster IP, not localhost
+            - name: CORS_ORIGIN
+              value: "*"
 ---
 apiVersion: v1
 kind: Service
