@@ -94,30 +94,37 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+       stage('Deploy to Kubernetes') {
             environment {
                 KUBECONFIG = credentials('kubernetes-cluster-config')
             }
             steps {
-                sh """
+                // Using single quotes (''') prevents Groovy interpolation and secures your secrets
+                sh '''
+                    # 1. Create the secrets securely using shell-evaluated environment variables
                     kubectl create secret generic newsera-secrets \
-                      --from-literal=GNEWS_API_KEY=${GNEWS_API_KEY} \
-                      --from-literal=NEWSDATA_API_KEY=${NEWSDATA_API_KEY} \
-                      --from-literal=GEMINI_API_KEY=${GEMINI_API_KEY} \
+                      --from-literal=GNEWS_API_KEY=$GNEWS_API_KEY \
+                      --from-literal=NEWSDATA_API_KEY=$NEWSDATA_API_KEY \
+                      --from-literal=GEMINI_API_KEY=$GEMINI_API_KEY \
                       --dry-run=client -o yaml | kubectl apply -f -
 
+                    # 2. Explicitly ensure the namespace exists first to prevent race conditions
+                    kubectl create namespace newsera --dry-run=client -o yaml | kubectl apply -f -
+
+                    # 3. Apply the rest of your clean k8s directory manifests
                     kubectl apply -f k8s/ --recursive
 
-                    kubectl rollout status deployment/api-gateway --timeout=2m
-                    kubectl rollout status deployment/auth-svc    --timeout=2m
-                    kubectl rollout status deployment/news-svc    --timeout=2m
-                    kubectl rollout status deployment/ai-svc      --timeout=2m
-                    kubectl rollout status deployment/frontend     --timeout=2m
-                """
+                    # 4. Monitor the rollouts
+                    kubectl rollout status deployment/api-gateway -n newsera --timeout=2m
+                    kubectl rollout status deployment/auth-svc -n newsera   --timeout=2m
+                    kubectl rollout status deployment/news-svc -n newsera   --timeout=2m
+                    kubectl rollout status deployment/ai-svc   -n newsera   --timeout=2m
+                    kubectl rollout status deployment/frontend -n newsera    --timeout=2m
+                '''
             }
         }
 
-    }
+    }        
 
      post {
         always {
