@@ -94,33 +94,28 @@ pipeline {
             }
         }
 
-       stage('Deploy to Kubernetes') {
-            environment {
-                KUBECONFIG = credentials('kubernetes-cluster-config')
-            }
+        stage('Update Image Tags in k8s manifests') {
             steps {
-                // Using single quotes (''') prevents Groovy interpolation and secures your secrets
-                sh '''
-                    # 1. Create the secrets securely using shell-evaluated environment variables
-                    kubectl create secret generic newsera-secrets \
-                      --from-literal=GNEWS_API_KEY=$GNEWS_API_KEY \
-                      --from-literal=NEWSDATA_API_KEY=$NEWSDATA_API_KEY \
-                      --from-literal=GEMINI_API_KEY=$GEMINI_API_KEY \
-                      --dry-run=client -o yaml | kubectl apply -f -
+                withCredentials([usernamePassword(
+                    credentialsId: 'github-credentials',
+                    usernameVariable: 'GIT_USER',
+                    passwordVariable: 'GIT_PASS'
+                )]) {
+                    sh """
+                      # Update the image tag in each manifest
+                        sed -i 's|adityapurkar/news-app-distributed-api-gateway:.*|adityapurkar/news-app-distributed-api-gateway:${IMAGE_TAG}|' k8s/api-gateway.yml
+                        sed -i 's|adityapurkar/news-app-distributed-auth-svc:.*|adityapurkar/news-app-distributed-auth-svc:${IMAGE_TAG}|' k8s/auth-svc.yml
+                        sed -i 's|adityapurkar/news-app-distributed-news-svc:.*|adityapurkar/news-app-distributed-news-svc:${IMAGE_TAG}|' k8s/news-svc.yml
+                        sed -i 's|adityapurkar/news-app-distributed-ai-svc:.*|adityapurkar/news-app-distributed-ai-svc:${IMAGE_TAG}|' k8s/ai-svc.yml
+                        sed -i 's|adityapurkar/news-app-distributed-frontend:.*|adityapurkar/news-app-distributed-frontend:${IMAGE_TAG}|' k8s/frontend.yml
 
-                    # 2. Explicitly ensure the namespace exists first to prevent race conditions
-                    kubectl create namespace newsera --dry-run=client -o yaml | kubectl apply -f -
-
-                    # 3. Apply the rest of your clean k8s directory manifests
-                    kubectl apply -f k8s/ --recursive
-
-                    # 4. Monitor the rollouts
-                    kubectl rollout status deployment/api-gateway -n newsera --timeout=2m
-                    kubectl rollout status deployment/auth-svc -n newsera   --timeout=2m
-                    kubectl rollout status deployment/news-svc -n newsera   --timeout=2m
-                    kubectl rollout status deployment/ai-svc   -n newsera   --timeout=2m
-                    kubectl rollout status deployment/frontend -n newsera    --timeout=2m
-                '''
+                        git config user.email "jenkins@newsera.ci"
+                        git config user.name "Jenkins CI"
+                        git add k8s/
+                        git diff --staged --quiet || git commit -m "ci: update image tags to build-${IMAGE_TAG} [skip ci]"
+                        git push https://${GIT_USER}:${GIT_PASS}@github.com/Aditya-purkar/News-app.git HEAD:main
+                    """
+                }
             }
         }
 
