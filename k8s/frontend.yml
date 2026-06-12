@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: adityapurkar/news-app-distributed-frontend:latest
+          image: adityapurkar/news-app-distributed-frontend:13
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80  # ✅ NGINX serves static assets natively on port 80 now

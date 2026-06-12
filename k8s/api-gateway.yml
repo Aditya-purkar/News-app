@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: adityapurkar/news-app-distributed-api-gateway:latest
+          image: adityapurkar/news-app-distributed-api-gateway:13
           imagePullPolicy: Always
           ports:
             - containerPort: 5000

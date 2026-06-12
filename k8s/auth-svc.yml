@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: auth-svc
-          image: adityapurkar/news-app-distributed-auth-svc:latest
+          image: adityapurkar/news-app-distributed-auth-svc:13
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5001
