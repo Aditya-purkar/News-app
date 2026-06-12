@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: ai-svc
-          image: adityapurkar/news-app-distributed-ai-svc:latest
+          image: adityapurkar/news-app-distributed-ai-svc:13
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5003

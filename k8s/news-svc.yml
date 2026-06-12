@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: news-svc
-          image: adityapurkar/news-app-distributed-news-svc:latest
+          image: adityapurkar/news-app-distributed-news-svc:13
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5002
