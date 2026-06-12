@@ -103,11 +103,11 @@ pipeline {
                 )]) {
                     sh """
                       # Update the image tag in each manifest
-                        sed -i 's|adityapurkar/news-app-distributed-api-gateway:.*|adityapurkar/news-app-distributed-api-gateway:${IMAGE_TAG}|' k8s/api-gateway.yml
-                        sed -i 's|adityapurkar/news-app-distributed-auth-svc:.*|adityapurkar/news-app-distributed-auth-svc:${IMAGE_TAG}|' k8s/auth-svc.yml
-                        sed -i 's|adityapurkar/news-app-distributed-news-svc:.*|adityapurkar/news-app-distributed-news-svc:${IMAGE_TAG}|' k8s/news-svc.yml
-                        sed -i 's|adityapurkar/news-app-distributed-ai-svc:.*|adityapurkar/news-app-distributed-ai-svc:${IMAGE_TAG}|' k8s/ai-svc.yml
-                        sed -i 's|adityapurkar/news-app-distributed-frontend:.*|adityapurkar/news-app-distributed-frontend:${IMAGE_TAG}|' k8s/frontend.yml
+                        sed -i 's|adityapurkar/newsera-api-gateway:.*|adityapurkar/newsera-api-gateway:${IMAGE_TAG}|' k8s/api-gateway.yml
+                        sed -i 's|adityapurkar/newsera-auth-svc:.*|adityapurkar/newsera-auth-svc:${IMAGE_TAG}|' k8s/auth-svc.yml
+                        sed -i 's|adityapurkar/newsera-news-svc:.*|adityapurkar/newsera-news-svc:${IMAGE_TAG}|' k8s/news-svc.yml
+                        sed -i 's|adityapurkar/newsera-ai-svc:.*|adityapurkar/newsera-ai-svc:${IMAGE_TAG}|' k8s/ai-svc.yml
+                        sed -i 's|adityapurkar/newsera-frontend:.*|adityapurkar/newsera-frontend:${IMAGE_TAG}|' k8s/frontend.yml
 
                         git config user.email "jenkins@newsera.ci"
                         git config user.name "Jenkins CI"
