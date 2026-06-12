@@ -119,9 +119,11 @@ pipeline {
 
     }
 
-    post {
+     post {
         always {
-            sh 'docker image prune -f || true'
+            node('built-in') {
+                sh 'docker image prune -f || true'
+            }
         }
         success {
             echo '✅ NewsEra deployed successfully!'
